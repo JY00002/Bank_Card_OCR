@@ -10,7 +10,7 @@ import random
 import xml.etree.ElementTree as ET
 
 # sets：数据所属的集合名称
-sets = ['train', 'val', 'test']
+sets = ['train', 'test']
 
 root_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
 
@@ -35,30 +35,22 @@ def data_split():
 
     num = len(total_xml)
     list = range(num)
-    # train_val_num的大小为数据集总数*训练验证集比例
-    # test_num的大小为训练验证集总数*测试集的比例
-    train_val_num = int(num * train_val_percent)
-    test_num = int(train_val_num * test_percent)
 
-    train_val = random.sample(list, train_val_num)
-    test = random.sample(train_val, test_num)
+    train_num = int(num * test_percent)
+
+    train = random.sample(list, train_num)
 
     test_file = open('../dataset/name/test.txt', 'w')
     train_file = open('../dataset/name/train.txt', 'w')
-    val_file = open('../dataset/name/val.txt', 'w')
 
     for file in list:
         name = total_xml[file][:-4] + '\n'
-        if file in train_val:
-            if file in test:
-                test_file.write(name)
-            else:
-                val_file.write(name)
+        if file not in train:
+            test_file.write(name)
         else:
             train_file.write(name)
 
     train_file.close()
-    val_file.close()
     test_file.close()
 
 

@@ -11,6 +11,9 @@ from keras.models import Model
 
 from card_recognize.yolo3.model import preprocess_true_boxes, yolo_body, yolo_loss
 from card_recognize.yolo3.utils import get_random_data
+from util.model_data_handler import get_classes,get_anchors
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -28,8 +31,6 @@ def _main():
 
 
 def train(model, annotation_path, input_shape, anchors, num_classes, log_dir='logs/'):
-    model.compile(optimizer='adam', loss={
-        'yolo_loss': lambda y_true, y_pred: y_pred})
     logging = TensorBoard(log_dir=log_dir)
     checkpoint = ModelCheckpoint(log_dir + "ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5",
                                  monitor='val_loss', save_weights_only=True, save_best_only=True, period=1)
@@ -52,18 +53,7 @@ def train(model, annotation_path, input_shape, anchors, num_classes, log_dir='lo
     model.save_weights(log_dir + 'trained_weights.h5')
 
 
-def get_classes(classes_path):
-    with open(classes_path) as f:
-        class_names = f.readlines()
-    class_names = [c.strip() for c in class_names]
-    return class_names
 
-
-def get_anchors(anchors_path):
-    with open(anchors_path) as f:
-        anchors = f.readline()
-    anchors = [float(x) for x in anchors.split(',')]
-    return np.array(anchors).reshape(-1, 2)
 
 
 def create_model(input_shape, anchors, num_classes):
@@ -72,28 +62,19 @@ def create_model(input_shape, anchors, num_classes):
     h, w = input_shape
     num_anchors = len(anchors)
 
-    # " // "表示整数除法, 返回不大于结果的一个最大的整数
     y_true = [Input(shape=(h // {0: 32, 1: 16, 2: 8}[l], w // {0: 32, 1: 16, 2: 8}[l], \
                            num_anchors // 3, num_classes + 5)) for l in range(3)]
 
     model_body = yolo_body(image_input, num_anchors // 3, num_classes)
     print('Create YOLOv3 model with {} anchors and {} classes.'.format(num_anchors, num_classes))
 
-    # if load_pretrained:
-    #     model_body.load_weights(weights_path, by_name=True, skip_mismatch=True)
-    #     print('Load weights {}.'.format(weights_path))
-    #     if freeze_body:
-    #         # Do not freeze 3 output layers.
-    #         num = len(model_body.layers) - 7
-    #         for i in range(num): model_body.layers[i].trainable = False
-    #         print('Freeze the first {} layers of total {} layers.'.format(num, len(model_body.layers)))
-
     model_loss = Lambda(yolo_loss, output_shape=(1,), name='yolo_loss',
                         arguments={'anchors': anchors, 'num_classes': num_classes, 'ignore_thresh': 0.5})(
         [*model_body.output, *y_true])
     model = Model([model_body.input, *y_true], model_loss)
+    model.compile(optimizer='adam', loss={
+        'yolo_loss': lambda y_true, y_pred: y_pred})
     return model
-
 
 def data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes):
     n = len(annotation_lines)
@@ -114,11 +95,13 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
         yield [image_data, *y_true], np.zeros(batch_size)
 
 
+
 # 数据生成
 def data_generator_wrap(annotation_lines, batch_size, input_shape, anchors, num_classes):
     n = len(annotation_lines)
     if n == 0 or batch_size <= 0:
         return None
+    print(type(data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes)))
     return data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes)
 
 
