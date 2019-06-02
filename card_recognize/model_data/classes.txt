@@ -1,0 +1,6 @@
+number
+up
+down
+left
+right
+bottom
