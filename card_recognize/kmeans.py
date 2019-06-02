@@ -96,5 +96,4 @@ if __name__ == "__main__":
     filename = "../dataset/label/train_label.txt"
     kmeans = YOLO_Kmeans(cluster_number, filename)
     kmeans.txt2clusters()
-    print(gol.get_value('classes'))
 
