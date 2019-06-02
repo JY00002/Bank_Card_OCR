@@ -41,6 +41,7 @@ def fixed_writexml(self, writer, indent="", addindent="", newl=""):
     else:
         writer.write("/>%s" % (newl))
 
+
 minidom.Element.writexml = fixed_writexml
 
 
@@ -101,9 +102,10 @@ def write_xml(object_list, dest_path):
     f.close()
 
 
+
 def read_xml(read_path, flag=False):
     '''
-    读xml文件
+    读取一个文件夹下的所有xml文件
     :param read_path:
     :param flag: 决定是否需要读取number类型的node，默认为False
     :return: 装有对象类型为 node 的list
