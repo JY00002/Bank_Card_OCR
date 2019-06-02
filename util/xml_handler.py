@@ -1,5 +1,5 @@
 '''
-对于xml文件的读写操作
+对于xml文件的相关操作
 '''
 import xml.dom.minidom as Dom
 from xml.dom import minidom
@@ -45,12 +45,12 @@ def fixed_writexml(self, writer, indent="", addindent="", newl=""):
 minidom.Element.writexml = fixed_writexml
 
 
-def write_xml(object_list, src_path):
+def write_xml(object_list, dest_path):
     '''
     写到xml文件
-    :param object_list:
-    :param src_path:
-    :return:
+    :param object_list: 装有Node对象的list
+    :param dest_path: 目标文件
+    :return: 无
     '''
     doc = Dom.Document()
     root_node = doc.createElement("annotation")
@@ -97,15 +97,15 @@ def write_xml(object_list, src_path):
         # annotation中写入object_node
         root_node.appendChild(object_node)
 
-    # print(doc.toxml("utf-8"))
-    f = open(src_path, "wb")
+    f = open(dest_path, "wb")
     f.write(doc.toprettyxml(indent="\t", newl="\n", encoding="utf-8"))
     f.close()
 
 
+
 def read_xml(read_path, flag=False):
     '''
-    读xml文件
+    读取一个文件夹下的所有xml文件
     :param read_path:
     :param flag: 决定是否需要读取number类型的node，默认为False
     :return: 装有对象类型为 node 的list
@@ -146,4 +146,4 @@ def integrate_xml(src_path_1, src_path_2, dest_path):
 
 
 if __name__ == "__main__":
-    write_xml()
+    read_xml()
